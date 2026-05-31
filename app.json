@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "24-Hour Sunnat & Masnoon Dua",
+    "slug": "sunnat-dua-expo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.iftikharjutt.sunnatdua"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
