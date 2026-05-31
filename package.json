@@ -1,0 +1,20 @@
+{
+  "name": "sunnat-dua-expo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@expo/vector-icons": "^15.1.1",
+    "expo": "^56.0.8",
+    "expo-font": "^56.0.5",
+    "expo-status-bar": "^56.0.4",
+    "react-native": "^0.85.3"
+  }
+}
