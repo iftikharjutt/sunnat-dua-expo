@@ -16,13 +16,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: |
+          npm install --legacy-peer-deps
+          npx expo install --fix
 
       - name: Prebuild Android
-        run: npx expo prebuild --platform android --no-install
+        run: |
+          CI=1 npx expo prebuild --platform android --no-install
 
       - name: Setup JDK 17
         uses: actions/setup-java@v4
