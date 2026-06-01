@@ -20,6 +20,9 @@
         "projectId": "75237f82-eaad-4d62-8030-e13152b4f80d"
       }
     },
-    "owner": "iftikhar_hussain795"
+    "owner": "iftikhar_hussain795",
+    "plugins": [
+      "expo-asset"
+    ]
   }
 }
