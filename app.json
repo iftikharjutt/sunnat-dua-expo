@@ -22,7 +22,8 @@
     },
     "owner": "iftikhar_hussain795",
     "plugins": [
-      "expo-asset"
+      "expo-asset",
+      "expo-build-properties"
     ]
   }
 }
