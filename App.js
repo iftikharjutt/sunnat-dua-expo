@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,222 +7,210 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Animated,
+  Dimensions,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-// --- DATA STRUCTURES ---
-
+// --- STYLE CONSTANTS ---
 const COLORS = {
-  primary: '#065F46', // Deep Emerald Green
-  secondary: '#ECFDF5', // Light Mint tint
-  text: '#111827', // Dark Charcoal
-  accent: '#059669',
-  card: '#FFFFFF',
-  border: '#D1FAE5',
+  emerald: '#064E3B', // Deep Emerald Green
+  mint: '#ECFDF5',    // Light Mint background
+  charcoal: '#1F2937', // Dark Charcoal text
+  white: '#FFFFFF',
+  silver: '#9CA3AF',
+  gold: '#D97706',
 };
+
+const { width } = Dimensions.get('window');
+
+// --- DATA STRUCTURES ---
 
 const TIMELINE_DATA = [
   {
-    step: '1',
-    time: 'صبحِ صادق',
-    title: 'Bidear Hona',
+    title: 'صبحِ صادق',
+    sub: 'Bidear Hona',
     dua: 'اَلْحَمْدُ لِلّٰهِ الَّذِيْ أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُوْرُ',
-    translation: 'Tamam tareefen us Allah k liye hain jis ne hamain marne k baad zinda kiya aur usi ki taraf lautna hai.',
+    urdu: 'تمام تعریفیں اللہ کے لیے ہیں جس نے ہمیں مارنے کے بعد زندہ کیا اور اسی کی طرف لوٹنا ہے۔',
   },
   {
-    step: '2',
-    time: 'نماز سے قبل',
-    title: 'Wudu & Taharat',
+    title: 'نماز سے قبل',
+    sub: 'Wudu & Taharat',
     dua: 'اَللّٰهُمَّ إِنِّيْ أَعُوْذُ بِكَ مِنَ الْخُبُثِ وَالْخَبَائِثِ',
-    translation: 'Ay Allah! Main teri panah mangta hun napak jinon (nar aur madah) se.',
+    urdu: 'اے اللہ! میں تیری پناہ مانگتا ہوں ناپاک جنوں (نر اور مادہ) سے۔',
   },
   {
-    step: '3',
-    time: 'طلوعِ آفتاب',
-    title: 'Fajr & Ishraq',
-    detail: 'Sunnat-e-Fajr aur Ishraq ki namaz ka ihtimam.',
+    title: 'طلوعِ آفتاب',
+    sub: 'Fajr & Ishraq',
+    desc: 'Sunnat-e-Fajr aur Ishraq ki namaz ka ihtimam karein.',
   },
   {
-    step: '4',
-    time: 'دن کا آغاز',
-    title: 'Rizq-e-Halal',
-    detail: 'Karobar aur naukri me Sunnat tariqon ka ihtimam.',
+    title: 'دن کا آغاز',
+    sub: 'Rizq-e-Halal',
+    desc: 'Business aur naukri me Sunnat tariqon aur eimandari ka ihtimam.',
   },
   {
-    step: '5',
-    time: 'قيلولہ',
-    title: 'Midday Rest',
-    detail: 'Zohar k baad thori der aram karna Sunnat hai.',
+    title: 'قيلولہ',
+    sub: 'Midday Rest',
+    desc: 'Zohar ke baad thori der aram karna Sunnat-e-Mubaraka hai.',
   },
   {
-    step: '6',
-    time: 'غروبِ آفتاب تا نیند',
-    title: 'Evening & Sleep',
-    detail: 'Tasbeeh-e-Fatimi, Bistar jharhna, Ayah al-Kursi.',
+    title: 'غروبِ آفتاب تا نیند',
+    sub: 'Evening & Sleeping',
+    desc: 'Tasbeeh-e-Fatimi, Bistar jharhna aur Ayatul Kursi parh kar sona.',
   },
 ];
 
-const CONTEXTUAL_DUAS = [
+const CATEGORY_DUAS = [
   {
-    title: 'Ghar se nikalte waqt',
+    cat: 'Ghar se nikalte waqt',
     dua: 'بِسْمِ اللَّهِ تَوَكَّلْتُ عَلَى اللَّهِ لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ',
-    translation: 'Allah k naam se, maine Allah par bharosa kiya, gunaho se bachne aur naiki karne ki quwwat Allah hi ki taraf se hai.',
+    urdu: 'اللہ کے نام سے، میں نے اللہ پر بھروسہ کیا، گناہوں سے بچنے اور نیکی کرنے کی قوت اللہ ہی کی طرف سے ہے۔',
   },
   {
-    title: 'Bazaar me dakhil hote waqt',
-    dua: 'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، يُحْيِي وَيُمِيتُ وَهُوَ حَيٌّ لَا يَمُوتُ، بِيَدِهِ الْخَيْرُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ',
-    translation: 'Allah k siwa koi mabood nahi, wo akela hai uska koi shareek nahi...',
+    cat: 'Bazaar me dakhil hote waqt',
+    dua: 'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِیکَ لَهُ، لَهُ الْمُلْکُ وَلَهُ الْحَمْدُ، یُحْيِی وَیُمِیتُ وَهُوَ حَیٌّ لَا یَمُوتُ، بِیَدِهِ الْخَیْرُ وَهُوَ عَلَی کُلِّ شَیْءٍ قَدِیرٌ',
+    urdu: 'اللہ کے سوا کوئی معبود نہیں، وہ اکیلا ہے اس کا کوئی شریک نہیں، بادشاہی اسی کی ہے اور تمام تعریف اسی کے لیے ہے...',
   },
   {
-    title: 'Naya Libas pehente waqt',
+    cat: 'Naya Libas pehente waqt',
     dua: 'اَللّٰهُمَّ لَكَ الْحَمْدُ اَنْتَ كَسَوْتَنِيْهِ، اَسْئَلُكَ مِنْ خَيْرِهِ وَخَيْرِ مَا صُنِعَ لَهُ',
-    translation: 'Ay Allah! Tere hi liye tareef hai, tune mujhe ye pehnaya...',
+    urdu: 'اے اللہ! تیرے ہی لیے تعریف ہے، تو نے مجھے یہ پہنایا، میں تجھ سے اس کی خیر اور جس کے لیے یہ بنایا گیا ہے اس کی خیر مانگتا ہوں۔',
   },
   {
-    title: 'Aina dekhte waqt',
+    cat: 'Aina dekhte waqt',
     dua: 'اَللّٰهُمَّ اَنْتَ حَسَّنْتَ خَلْقِيْ فَحَسِّنْ خُلُقِيْ',
-    translation: 'Ay Allah! Tune meri soorat achi banayi, meri seerat (akhlaq) bhi achi kar de.',
+    urdu: 'اے اللہ! تو نے میری صورت اچھی بنائی، میری سیرت (اخلاق) بھی اچھی کر دے۔',
   },
   {
-    title: 'Khane k baad',
+    cat: 'Khane ke baad',
     dua: 'اَلْحَمْدُ لِلّٰهِ الَّذِيْ اَطْعَمَنَا وَسَقَانَا وَجَعَلَنَا مُسْلِمِيْنَ',
-    translation: 'Tamam tareefen us Allah k liye jis ne hamain khilaya, pilaya aur Musalman banaya.',
+    urdu: 'تمام تعریفیں اس اللہ کے لیے ہیں جس نے ہمیں کھلایا، پلایا اور مسلمان بنایا۔',
+  },
+  {
+    cat: 'Majlis se uthte waqt',
+    dua: 'سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ، أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا أَنْتَ، أَسْتَغْفِرُكَ وَأَتُوبُ إِلَيْكَ',
+    urdu: 'اے اللہ! تو پاک ہے اپنی تعریف کے ساتھ، میں گواہی دیتا ہوں کہ تیرے سوا کوئی معبود نہیں، میں تجھ سے بخشش مانگتا ہوں اور تیری طرف توبہ کرتا ہوں۔',
   },
 ];
 
-const AZKAR_DATA = [
+const AZKAR_LIST = [
   { id: 1, title: 'Ayat al-Kursi', target: 1, text: 'اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...' },
   { id: 2, title: '3 Qul', target: 3, text: 'Surah Ikhlas, Falaq, Nas' },
   { id: 3, title: 'Bismillahillazi...', target: 3, text: 'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ...' },
-  { id: 4, title: 'Raditu Billahi...', target: 3, text: 'رَضِيتُ بِاللَّهِ رَبًّا وَبِالْإِسْلَامِ دِينًا...' },
+  { id: 4, title: 'Raditu Billahi...', target: 3, text: 'رَضِیتُ بِاللّٰہِ رَبًّا وَّ بِالْاِسْلَامِ دِیْنًا...' },
   { id: 5, title: 'Hasbiyallahu...', target: 7, text: 'حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ...' },
-  { id: 6, title: 'Ya Hayyu Ya Qayyum...', target: 1, text: 'يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ...' },
+  { id: 6, title: 'Ya Hayyu Ya Qayyum...', target: 1, text: 'یَا حَیُّ یَا قَیُّومُ بِرَحْمَتِکَ اَسْتَغِیْثُ' },
   { id: 7, title: 'Subhanallahi wa Bihmdihi', target: 100, text: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ' },
-  { id: 8, title: 'Sayyidul Istighfar', target: 1, text: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ...' },
+  { id: 8, title: 'Sayyidul Istighfar', target: 1, text: 'اَللّٰھُمَّ اَنْتَ رَبِّیْ لَا اِلٰہَ اِلَّا اَنْتَ خَلَقْتَنِیْ...' },
 ];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('Timeline');
-  const [azkarCounts, setAzkarCounts] = useState(
-    AZKAR_DATA.reduce((acc, item) => ({ ...acc, [item.id]: 0 }), {})
-  );
+  const [tab, setTab] = useState('Timeline');
+  const [counts, setCounts] = useState({});
 
-  const incrementZikr = (id, target) => {
-    if (azkarCounts[id] < target) {
-      setAzkarCounts({ ...azkarCounts, [id]: azkarCounts[id] + 1 });
+  useEffect(() => {
+    const initialCounts = {};
+    AZKAR_LIST.forEach(a => initialCounts[a.id] = 0);
+    setCounts(initialCounts);
+  }, []);
+
+  const handlePress = (id, target) => {
+    if (counts[id] < target) {
+      setCounts({ ...counts, [id]: counts[id] + 1 });
     }
   };
 
-  const resetZikr = (id) => {
-    setAzkarCounts({ ...azkarCounts, [id]: 0 });
-  };
-
   const renderTimeline = () => (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-      <Text style={styles.headerTitle}>24-Hour Sunnat</Text>
-      {TIMELINE_DATA.map((item, index) => (
-        <View key={index} style={styles.timelineCard}>
-          <View style={styles.timelineHeader}>
-            <View style={styles.stepCircle}>
-              <Text style={styles.stepText}>{item.step}</Text>
-            </View>
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.timeUrdu}>{item.time}</Text>
-              <Text style={styles.titleEnglish}>{item.title}</Text>
-            </View>
+    <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <Text style={styles.sectionTitle}>Daily Routine</Text>
+      {TIMELINE_DATA.map((item, i) => (
+        <View key={i} style={styles.timelineCard}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.urduHeader}>{item.title}</Text>
+            <Text style={styles.englishHeader}>{item.sub}</Text>
           </View>
-          {item.dua && (
-            <View style={styles.duaBox}>
-              <Text style={styles.arabicText}>{item.dua}</Text>
-              <Text style={styles.urduTranslation}>{item.translation}</Text>
-            </View>
-          )}
-          {item.detail && <Text style={styles.detailText}>{item.detail}</Text>}
+          {item.dua && <Text style={styles.arabicText}>{item.dua}</Text>}
+          {item.urdu && <Text style={styles.urduText}>{item.urdu}</Text>}
+          {item.desc && <Text style={styles.descText}>{item.desc}</Text>}
         </View>
       ))}
+      <View style={{ height: 100 }} />
     </ScrollView>
   );
 
   const renderDuas = () => (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-      <Text style={styles.headerTitle}>Contextual Duas</Text>
-      {CONTEXTUAL_DUAS.map((item, index) => (
-        <View key={index} style={styles.duaCard}>
-          <Text style={styles.duaCategory}>{item.title}</Text>
+    <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <Text style={styles.sectionTitle}>Masnoon Duas</Text>
+      {CATEGORY_DUAS.map((item, i) => (
+        <View key={i} style={styles.duaCard}>
+          <Text style={styles.categoryLabel}>{item.cat}</Text>
           <Text style={styles.arabicTextLarge}>{item.dua}</Text>
           <View style={styles.divider} />
-          <Text style={styles.urduTranslation}>{item.translation}</Text>
+          <Text style={styles.urduText}>{item.urdu}</Text>
         </View>
       ))}
+      <View style={{ height: 100 }} />
     </ScrollView>
   );
 
   const renderAzkar = () => (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-      <Text style={styles.headerTitle}>Digital Tasbeeh</Text>
-      {AZKAR_DATA.map((item) => {
-        const isDone = azkarCounts[item.id] === item.target;
+    <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <Text style={styles.sectionTitle}>Digital Tasbeeh</Text>
+      {AZKAR_LIST.map((item) => {
+        const isDone = counts[item.id] >= item.target;
         return (
           <TouchableOpacity
             key={item.id}
-            activeOpacity={0.8}
-            onPress={() => incrementZikr(item.id, item.target)}
-            onLongPress={() => resetZikr(item.id)}
+            activeOpacity={0.7}
+            onPress={() => handlePress(item.id, item.target)}
+            onLongPress={() => setCounts({ ...counts, [item.id]: 0 })}
             style={[styles.zikrCard, isDone && styles.zikrCardDone]}
           >
-            <View style={styles.zikrInfo}>
-              <Text style={styles.zikrTitle}>{item.title}</Text>
-              <Text style={styles.zikrText}>{item.text}</Text>
-              <Text style={styles.zikrTarget}>Target: {item.target}x</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.zikrTitle, isDone && { color: COLORS.white }]}>{item.title}</Text>
+              <Text style={[styles.zikrSub, isDone && { color: COLORS.mint }]}>{item.text}</Text>
+              <Text style={[styles.zikrTarget, isDone && { color: COLORS.white }]}>Target: {item.target}x</Text>
             </View>
-            <View style={[styles.counterCircle, isDone && styles.counterCircleDone]}>
-              <Text style={styles.counterText}>
-                {isDone ? <MaterialCommunityIcons name="check" size={24} color="white" /> : azkarCounts[item.id]}
-              </Text>
+            <View style={[styles.counter, isDone && styles.counterDone]}>
+              {isDone ? (
+                <MaterialCommunityIcons name="check-bold" size={28} color={COLORS.emerald} />
+              ) : (
+                <Text style={styles.counterText}>{counts[item.id]}</Text>
+              )}
             </View>
           </TouchableOpacity>
         );
       })}
+      <View style={{ height: 100 }} />
     </ScrollView>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.mainContainer}>
-        {activeTab === 'Timeline' && renderTimeline()}
-        {activeTab === 'Duas' && renderDuas()}
-        {activeTab === 'Azkar' && renderAzkar()}
+      <View style={styles.header}>
+        <Text style={styles.logo}>Sunnah24</Text>
+        <Text style={styles.tagline}>Reviving Prophetic Habits</Text>
       </View>
 
-      {/* Custom Tab Bar */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity onPress={() => setActiveTab('Timeline')} style={styles.tabItem}>
-          <MaterialCommunityIcons
-            name="clock-outline"
-            size={24}
-            color={activeTab === 'Timeline' ? COLORS.primary : '#9CA3AF'}
-          />
-          <Text style={[styles.tabLabel, activeTab === 'Timeline' && styles.tabLabelActive]}>Daily</Text>
-        </TouchableOpacity>
+      <View style={{ flex: 1 }}>
+        {tab === 'Timeline' && renderTimeline()}
+        {tab === 'Duas' && renderDuas()}
+        {tab === 'Azkar' && renderAzkar()}
+      </View>
 
-        <TouchableOpacity onPress={() => setActiveTab('Duas')} style={styles.tabItem}>
-          <MaterialCommunityIcons
-            name="hands-pray"
-            size={24}
-            color={activeTab === 'Duas' ? COLORS.primary : '#9CA3AF'}
-          />
-          <Text style={[styles.tabLabel, activeTab === 'Duas' && styles.tabLabelActive]}>Duas</Text>
+      <View style={styles.navBar}>
+        <TouchableOpacity onPress={() => setTab('Timeline')} style={styles.navItem}>
+          <MaterialCommunityIcons name="clock-time-four-outline" size={24} color={tab === 'Timeline' ? COLORS.emerald : COLORS.silver} />
+          <Text style={[styles.navText, tab === 'Timeline' && styles.navTextActive]}>Routine</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => setActiveTab('Azkar')} style={styles.tabItem}>
-          <MaterialCommunityIcons
-            name="dots-horizontal-circle-outline"
-            size={24}
-            color={activeTab === 'Azkar' ? COLORS.primary : '#9CA3AF'}
-          />
-          <Text style={[styles.tabLabel, activeTab === 'Azkar' && styles.tabLabelActive]}>Azkar</Text>
+        <TouchableOpacity onPress={() => setTab('Duas')} style={styles.navItem}>
+          <MaterialCommunityIcons name="hands-pray" size={24} color={tab === 'Duas' ? COLORS.emerald : COLORS.silver} />
+          <Text style={[styles.navText, tab === 'Duas' && styles.navTextActive]}>Duas</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setTab('Azkar')} style={styles.navItem}>
+          <MaterialCommunityIcons name="dots-grid" size={24} color={tab === 'Azkar' ? COLORS.emerald : COLORS.silver} />
+          <Text style={[styles.navText, tab === 'Azkar' && styles.navTextActive]}>Azkar</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -232,203 +220,196 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.mint,
   },
-  mainContainer: {
-    flex: 1,
-  },
-  scrollContent: {
+  header: {
     padding: 20,
-    paddingBottom: 100,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  // Timeline Styles
-  timelineCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
+    backgroundColor: COLORS.white,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  logo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.emerald,
+    letterSpacing: 1,
+  },
+  tagline: {
+    fontSize: 12,
+    color: COLORS.silver,
+    marginTop: 4,
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLORS.charcoal,
+    marginBottom: 16,
+    marginLeft: 4,
+  },
+  timelineCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+    borderLeftWidth: 5,
+    borderLeftColor: COLORS.emerald,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
     elevation: 2,
   },
-  timelineHeader: {
+  cardHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 10,
   },
-  stepCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  stepText: {
-    color: '#fff',
+  urduHeader: {
+    fontSize: 20,
     fontWeight: 'bold',
+    color: COLORS.emerald,
   },
-  timeUrdu: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    textAlign: 'left',
-  },
-  titleEnglish: {
+  englishHeader: {
     fontSize: 14,
-    color: '#6B7280',
-  },
-  duaBox: {
-    backgroundColor: COLORS.secondary,
-    padding: 12,
-    borderRadius: 12,
-    marginTop: 8,
+    color: COLORS.silver,
+    fontWeight: '600',
   },
   arabicText: {
-    fontSize: 20,
-    color: COLORS.primary,
+    fontSize: 22,
+    color: COLORS.emerald,
     textAlign: 'right',
-    lineHeight: 32,
-    fontFamily: 'System', // Fallback for Arabic
+    lineHeight: 38,
+    marginVertical: 8,
   },
   arabicTextLarge: {
     fontSize: 24,
-    color: COLORS.primary,
+    color: COLORS.emerald,
     textAlign: 'center',
-    lineHeight: 40,
-    marginVertical: 12,
+    lineHeight: 44,
+    marginVertical: 15,
   },
-  urduTranslation: {
+  urduText: {
     fontSize: 14,
-    color: COLORS.text,
+    color: COLORS.charcoal,
     textAlign: 'right',
-    marginTop: 8,
     lineHeight: 22,
   },
-  detailText: {
-    fontSize: 15,
-    color: COLORS.text,
-    marginTop: 8,
+  descText: {
+    fontSize: 14,
+    color: COLORS.charcoal,
+    lineHeight: 20,
     fontStyle: 'italic',
   },
-  // Dua Tab Styles
   duaCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    borderRadius: 25,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    elevation: 4,
   },
-  duaCategory: {
-    fontSize: 14,
+  categoryLabel: {
+    fontSize: 12,
     fontWeight: 'bold',
-    color: COLORS.accent,
+    color: COLORS.gold,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   divider: {
     height: 1,
-    backgroundColor: COLORS.border,
-    marginVertical: 10,
+    backgroundColor: COLORS.mint,
+    marginVertical: 12,
   },
-  // Azkar Styles
   zikrCard: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.white,
     borderRadius: 20,
     padding: 16,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: '#E5E7EB',
   },
   zikrCardDone: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  zikrInfo: {
-    flex: 1,
-    marginRight: 12,
+    backgroundColor: COLORS.emerald,
+    borderColor: COLORS.emerald,
   },
   zikrTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: COLORS.emerald,
   },
-  zikrText: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 4,
+  zikrSub: {
+    fontSize: 11,
+    color: COLORS.silver,
+    marginVertical: 4,
   },
   zikrTarget: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.accent,
-    marginTop: 4,
+    color: COLORS.gold,
   },
-  counterCircle: {
+  counter: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.mint,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: COLORS.primary,
+    borderColor: COLORS.emerald,
   },
-  counterCircleDone: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderColor: '#fff',
+  counterDone: {
+    backgroundColor: COLORS.white,
+    borderColor: COLORS.white,
   },
   counterText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: COLORS.emerald,
   },
-  // Tab Bar Styles
-  tabBar: {
+  navBar: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 30,
     left: 20,
-    right: 20,
-    backgroundColor: COLORS.card,
+    right: 30,
+    backgroundColor: COLORS.white,
     height: 70,
     borderRadius: 35,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: { width: 0, height: 20 },
     shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowRadius: 30,
+    elevation: 15,
   },
-  tabItem: {
+  navItem: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tabLabel: {
-    fontSize: 12,
-    color: '#9CA3AF',
+  navText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: COLORS.silver,
     marginTop: 4,
   },
-  tabLabelActive: {
-    color: COLORS.primary,
-    fontWeight: '600',
+  navTextActive: {
+    color: COLORS.emerald,
   },
 });
